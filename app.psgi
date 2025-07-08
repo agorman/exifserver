@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Plack::Request;
 use JSON::XS;
-use Image::ExifTool;
+use Image::ExifTool qw(GetTagName);
 use Try::Tiny;
 
 my $exifTool = Image::ExifTool->new;
@@ -71,12 +71,14 @@ my $app = sub {
 		my $all_with_groups = {};
 		# Iterate through the extracted tags and print the tag key, value, and group name
 		foreach my $tag_key (keys %$all) {
+			# GetTagName removes the added (\d) added by Duplicate fields.
+			my $tag_name = GetTagName($tag_key);
 			my $group = $exifTool->GetGroup($tag_key);
 			if ($group) {
 				if ($req_body->{format_groups} == 1) {
-					$all_with_groups->{"$group:$tag_key"} = $all->{$tag_key};
+					$all_with_groups->{"$group:$tag_name"} = $all->{$tag_name};
 				} else {
-					$all_with_groups->{$group}->{$tag_key} = $all->{$tag_key};
+					$all_with_groups->{$group}->{$tag_name} = $all->{$tag_name};
 				}
 			}
 		}
